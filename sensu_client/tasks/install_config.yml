@@ -1,0 +1,18 @@
+---
+# tasks file for sensu
+- block:
+  - name: create sensu repo
+    template: src=sensu.repo.j2 dest=/etc/yum.repos.d/sensu.repo
+  - name: install sensu_client
+    yum: name=sensu state=present
+  - name: configure client
+    template: src=client.json.j2 dest=/etc/sensu/conf.d/client.json
+  - name: configuration
+    template: src=config.json.j2 dest=/etc/sensu/config.json
+  - name: configure transport
+    template: src=transport.json.j2 dest=/etc/sensu/conf.d/transport.json
+  - name: configure redis
+    template: src=redis.json.j2 dest=/etc/sensu/conf.d/redis.json
+  - name: enable service
+    systemd: name=sensu-client enabled=true state=restarted
+  when: ansible_os_family == 'RedHat'

@@ -1,0 +1,4 @@
+---
+# tasks file for sensu_client
+- include: install_config.yml
+- include: install_plugins.yml

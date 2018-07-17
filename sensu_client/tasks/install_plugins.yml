@@ -1,0 +1,20 @@
+---
+# install sesnu plugins
+- name: install plugins
+  command: sensu-install -p {{ item }}
+  with_items:
+    - cpu-checks
+    - disk-checks
+    - memory-checks 
+    - process-checks
+    - load-checks
+    - vmstats 
+    - nginx
+    - stackstorm
+    - sensu-plugins-network-checks
+    - sensu-plugins-slack
+    - sensu-plugins-tomcat
+    - sensu-plugins-redis
+    - sensu-plugins-jolokia
+#    - sensu-plugins-jenkins
+#    - sensu-plugins-aws
