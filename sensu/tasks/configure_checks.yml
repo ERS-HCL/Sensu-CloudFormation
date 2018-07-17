@@ -1,0 +1,32 @@
+- name: disk_usage_check
+  sensu_check:
+    name: disk_usage_check
+    command: /opt/sensu/embedded/bin/check-disk-usage.rb -w 20 -c 90 
+    subscribers: dev
+    handlers: st2
+    interval: 60
+- name: check_cpu
+  sensu_check:
+    name: check_cpu
+    command: /opt/sensu/embedded/bin/check-cpu.rb -w 20 -c 80
+    subscribers: dev
+    interval: 60
+- name: check_load
+  sensu_check:
+    name: check_load
+    command: /opt/sensu/embedded/bin/check-load.rb -w L1,L5,L15
+    subscribers: dev
+    interval: 60
+- name: check_ports
+  sensu_check:
+    name: check_ports
+    command: /opt/sensu/embedded/bin/check-ports.rb -p 22,8080
+    subscribers: dev
+    interval: 60                        
+- name: restart services
+  systemd: name={{ item }}  state=restarted
+  with_items:
+    - sensu-server
+    - sensu-api
+    - sensu-client
+    - uchiwa 

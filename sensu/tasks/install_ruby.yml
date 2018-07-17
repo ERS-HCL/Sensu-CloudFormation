@@ -1,0 +1,23 @@
+---
+# tasks file for sensu
+
+- name: install ruby dependencies
+  yum: name={{ item }} state=present
+  with_items:
+    - gcc-c++
+    - patch
+    - readline
+    - readline-devel
+    - zlib
+    - zlib-devel
+    - libffi-devel
+    - openssl-devel
+    - make
+    - bzip2
+    - autoconf
+    - automake
+    - libtool
+    - bison
+    - sqlite-devel
+- name: install RVM and Ruby
+  script: file.sh

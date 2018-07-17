@@ -1,0 +1,6 @@
+---
+# tasks file for sensu
+- include: install_ruby.yml
+- include: install_config.yml
+- include: install_plugins.yml
+- include: configure_checks.yml

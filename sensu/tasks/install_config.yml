@@ -1,0 +1,35 @@
+---
+# tasks file for sensu
+- block:
+  - name: create sensu repo
+    template: src=sensu.repo.j2 dest=/etc/yum.repos.d/sensu.repo
+  - name: install redis,sensu,uchiwa
+    yum: name={{ item }} state=present
+    with_items:
+      - redis
+      - jq
+      - curl
+      - sensu
+      - uchiwa
+  - name: configure redis.conf
+    template: src=redis.conf.j2 dest=/etc/redis.conf
+  - name: configure client
+    template: src=client.json.j2 dest=/etc/sensu/conf.d/client.json
+  - name: configuration
+    template: src=config.json.j2 dest=/etc/sensu/config.json
+  - name: configure uchiwa
+    template: src=uchiwa.json.j2 dest=/etc/sensu/uchiwa.json
+  - name: configure transport
+    template: src=transport.json.j2 dest=/etc/sensu/conf.d/transport.json
+
+  - name: configure redis
+    template: src=redis.json.j2 dest=/etc/sensu/conf.d/redis.json
+  - name: enable service
+    systemd: name={{ item }} enabled=true state=restarted
+    with_items:
+      - redis
+      - sensu-server
+      - sensu-api
+      - sensu-client
+      - uchiwa
+  when: ansible_os_family == 'RedHat'
