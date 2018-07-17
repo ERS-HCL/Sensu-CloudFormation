@@ -1,0 +1,140 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Create Two EC2 instances preconfigured with SensuServer/client",
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "32": "ami-6411e20d",
+                "64": "ami-7a11e213"
+            },
+            "us-west-1": {
+                "32": "ami-c9c7978c",
+                "64": "ami-cfc7978a"
+            },
+            "us-west-2": {
+                "32": "ami-c9c7978c",
+                "64": "ami-28e07e50"
+            },
+            "eu-west-1": {
+                "32": "ami-37c2f643",
+                "64": "ami-31c2f645"
+            },
+            "ap-southeast-1": {
+                "32": "ami-66f28c34",
+                "64": "ami-60f28c32"
+            },
+            "ap-northeast-1": {
+                "32": "ami-9c03a89d",
+                "64": "ami-a003a8a1"
+            }
+        }
+    },
+    "Parameters": {
+        "SSHKey": {
+            "Description": "Select your SSH Key",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "InstanceTypeParameter": {
+            "Type": "String",
+            "Default": "t2.micro",
+            "AllowedValues": [
+                "t2.micro",
+                "m4.xlarge",
+                "m1.large"
+            ],
+            "Description": "Select Instancetype. Default is t2.micro."
+        },
+        "InstanceHostname": {
+            "Description": "Select your you instance Hostname",
+            "Type": "String",
+            "Default": "Sensu-server"
+        }
+    },
+    "Resources": {
+        "SensuServer": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "64"
+                    ]
+                },
+                "InstanceType": {
+                    "Ref": "InstanceTypeParameter"
+                },
+                "KeyName": {
+                    "Ref": "SSHKey"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Sensu-Server"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "#!/bin/bash",
+                                "yum update -y",
+                                "yum install git wget -y",
+                                "cd /tmp/",
+                                "wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm",
+                                "rpm -ivh epel-release-latest-7.noarch.rpm",
+                                "yum install epel-release -y",
+                                "yum install ansible -y",
+                                "cd /home/",
+                                "git clone https://github.com/sravankumar-n/Sensu_Ansible_CF.git",
+                                "/usr/bin/ansible-playbook /home/Sensu_Ansible_CF/setup.yml"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "SensuClient": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "64"
+                    ]
+                },
+                "InstanceType": {
+                    "Ref": "InstanceTypeParameter"
+                },
+                "KeyName": {
+                    "Ref": "SSHKey"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Sensu-Client"
+                    }
+                ],
+                "UserData"  : { "Fn::Base64" : { "Fn::Join" : ["", [
+                "#!/bin/bash -xe\n",
+		"sudo yum install wget -y","\n",
+               "wget https://raw.githubusercontent.com/sravankumar-n/Sensu_Ansible_CF/master/install_sensu_client.sh","\n",
+	      "ip=", { "Fn::GetAtt" : ["SensuServer", "PrivateIp"] }," sh install_sensu_client.sh","\n"
+			 			 
+        ]]}}
+            }
+        }
+    },
+	"Outputs" : {
+    "URL" : {
+      "Value" : { "Fn::Join" : [ "", [ { "Fn::GetAtt" : ["SensuServer", "PrivateIp"] }]]},
+      "Description" : "Server Private IP"
+    }
+  }
+}
